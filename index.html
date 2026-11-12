@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flujo Máximo Ford-Fulkerson</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app" id="app">
+  <header class="top" aria-label="Controles del grafo">
+    <div class="brand"><h1>Flujo Máximo</h1><small>FORD-FULKERSON</small></div>
+    <div class="ctrl">
+      <label for="n">Nodos n</label>
+      <input id="n" type="number" min="7" max="16" value="7" inputmode="numeric">
+      <button class="btn dark small" id="bManual" title="n vértices sin aristas">Manual</button>
+      <button class="btn dark small" id="bAleatorio">Aleatorio</button>
+    </div>
+    <div class="ctrl">
+      <button class="btn src" id="bFuentes">Fuente: a</button>
+      <button class="btn sink" id="bSumideros">Sumidero: g</button>
+    </div>
+    <div class="ctrl">
+      <button class="btn primary" id="bCalcular">Calcular flujo</button>
+      <button class="btn dark" id="bLimpiar">Limpiar</button>
+      <label for="modo">Modo</label>
+      <select id="modo"><option value="auto">Automático</option><option value="practica">Práctica</option></select>
+    </div>
+  </header>
+
+  <div class="main">
+    <section class="card" aria-label="Red de flujo">
+      <div class="card-h">
+        <h2>RED DE FLUJO</h2>
+        <div class="tabs" id="pestanas" hidden>
+          <button class="chip neg" id="tabCon" aria-pressed="true">Con flujo negativo</button>
+          <button class="chip pos" id="tabSin" aria-pressed="false">Sin flujo negativo</button>
+        </div>
+        <span style="margin-left:auto" class="eyebrow">Vista</span>
+        <select id="vista" aria-label="Vista"><option>Red original</option><option>Red residual</option><option>Corte mínimo</option></select>
+      </div>
+      <div class="tools">
+        <button class="btn small" id="bAlejar">Alejar</button>
+        <button class="btn small" id="bAcercar">Acercar</button>
+        <span class="sep"></span>
+        <div class="grp"><span class="eyebrow">Ancho</span><button class="btn small" id="bAnchoM" aria-label="Menos ancho">−</button><button class="btn small" id="bAnchoP" aria-label="Más ancho">+</button></div>
+        <div class="grp"><span class="eyebrow">Alto</span><button class="btn small" id="bAltoM" aria-label="Menos alto">−</button><button class="btn small" id="bAltoP" aria-label="Más alto">+</button></div>
+        <span class="sep"></span>
+        <button class="btn small" id="bDeshacer">Deshacer</button>
+        <label class="toggle" id="tgEditar"><input type="checkbox" id="editar"> Conectar con clic</label>
+        <label class="toggle"><input type="checkbox" id="autoOrden" checked> Ordenar automáticamente</label>
+      </div>
+      <div class="sub" id="sub"></div>
+      <div class="canvas-wrap" id="wrap"><svg id="lienzo" role="img" aria-label="Grafo dirigido"></svg></div>
+      <div class="legend" id="leyenda">
+        <span style="color:var(--src)">● Fuente</span><span style="color:var(--src-dark)">● Superfuente S</span>
+        <span style="color:var(--sink)">● Sumidero</span><span style="color:var(--sink-dark)">● Supersumidero T</span>
+        <span style="color:var(--edge-flow)">— Arista con flujo</span><span style="color:var(--sink)">▭ Arista llena</span>
+        <span style="color:var(--path)">— Camino aumentante</span><span style="color:var(--neg)">- - Flujo negativo aplicado</span>
+        <span style="color:var(--cut)">- - Arcos S→T del corte</span><span style="color:var(--sink)">| Línea de corte</span>
+      </div>
+      <div class="nav">
+        <button class="btn small" id="bInicio">Inicio</button>
+        <button class="btn small" id="bAnterior">‹ Anterior</button>
+        <span class="paso" id="paso">Paso 0 / 0</span>
+        <button class="btn small" id="bSiguiente">Siguiente ›</button>
+        <button class="btn small" id="bResultado">Resultado</button>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="card metrics" aria-label="Resumen">
+        <div class="metric"><span class="eyebrow">Flujo actual</span><span class="v flow" id="mFlujo">0</span><span class="d" id="dFlujo"></span></div>
+        <div class="metric"><span class="eyebrow">Corte mínimo</span><span class="v cutv" id="mCorte">—</span><span class="d" id="dCorte"></span></div>
+        <div class="metric"><span class="eyebrow">Límite fuentes / sumideros</span><span class="v lim" id="mLim">—</span><span class="d" id="dLim"></span></div>
+      </section>
+      <section class="card" aria-label="Progreso del algoritmo">
+        <div class="prog-h"><h2 class="eyebrow" style="color:var(--accent);font-size:.8rem;margin:0">Progreso del algoritmo</h2><span class="badge" id="chip">SIN EJECUTAR</span></div>
+        <pre class="texto" id="texto"></pre>
+        <div class="practica" id="practica" hidden>
+          <div class="fila"><label for="delta" style="font-weight:800">Δ =</label><input id="delta" type="number" inputmode="numeric"><button class="btn primary small" id="bComprobar">Comprobar</button></div>
+          <div class="fila">
+            <button class="btn small" id="bPista">Pista</button>
+            <button class="btn small" id="bSugerir">Sugerir</button>
+            <button class="btn small" id="bUsar">Usar sugerencia</button>
+            <button class="btn small" id="bDeshacerCamino">Deshacer camino</button>
+          </div>
+          <div class="fb info" id="fb"></div>
+          <div class="score" id="score"></div>
+        </div>
+      </section>
+      <section class="card" aria-label="Evolución del flujo">
+        <div class="prog-h"><span class="eyebrow" style="color:var(--accent)">Evolución del flujo total</span></div>
+        <svg id="evol" role="img" aria-label="Flujo total por iteración"></svg>
+      </section>
+      <section class="card" style="padding:12px 14px" aria-label="Más opciones">
+        <div class="eyebrow" style="margin-bottom:8px">Ejemplos y herramientas</div>
+        <div class="sheet-btns">
+          <button class="btn small" id="bEj7">Ejemplo de 7 nodos</button>
+          <button class="btn small" id="bEjMulti">Ejemplo multifuente</button>
+          <button class="btn small" id="bMatriz">Matriz de capacidades</button>
+          <button class="btn small" id="bGuardados">Grafos guardados</button>
+          <button class="btn small" id="bCortes">Tabla de todos los cortes</button>
+          <button class="btn small" id="bReporte">Reporte de la solución</button>
+        </div>
+      </section>
+    </aside>
+  </div>
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

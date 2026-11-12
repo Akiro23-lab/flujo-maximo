@@ -1,0 +1,17 @@
+Flujo Máximo · Ford-Fulkerson (versión web)
+Matemática Computacional · Sección 15402 · Grupo 6
+
+Archivos
+  index.html  estructura de la página
+  style.css   estilos
+  script.js   lógica del grafo y del algoritmo
+
+Cómo ejecutarlo
+  Opción 1: doble clic en index.html (se abre en el navegador).
+  Opción 2 (Visual Studio Code):
+    1. Archivo > Abrir carpeta... y elegir FlujoMaximo_Web.
+    2. Instalar la extensión "Live Server" (Ritwick Dey).
+    3. Clic derecho en index.html > "Open with Live Server".
+
+No necesita instalar nada más. Con internet carga las fuentes de Google;
+sin internet funciona igual con fuentes del sistema.
